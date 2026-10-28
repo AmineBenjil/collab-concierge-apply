@@ -16,7 +16,7 @@ npm run dev   # http://localhost:3100
 
 ## Point it at a business
 
-Edit `src/business.ts` (handle, name, welcome and thank-you DMs) and replace `public/img/business/avatar.jpg` and `cover.png`.
+Edit `src/business.ts` (handle, name, welcome and thank-you DMs) and replace `public/img/business/avatar.jpg`. The cover behind it is the same Benable gradient for every business.
 
 ## Where requests go
 

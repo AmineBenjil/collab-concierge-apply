@@ -226,7 +226,7 @@ export default function CreatorFlow() {
 
 /* ---------- screens ---------- */
 
-/* the first screen: the business's photo fading to white, their avatar and name, the title, their welcome DM, and Let's go */
+/* the first screen: the Benable cover fading to white, their avatar and name, the title, their welcome DM, and Let's go */
 function Opener({ onStart }: { onStart: () => void }) {
   return (
     <div className="relative flex flex-1 flex-col">
@@ -472,12 +472,15 @@ function Extra({ d, set }: Bind) {
 
 /* ---------- the opener and thank-you screens share these ---------- */
 
-/* the business's photo, fading to white at the bottom */
+/* the same Benable cover for every business (their own photo sits on top as the avatar): the soft brand
+   gradient with faint violet doodles, fading to white. Matches the demo's creator page. */
 function Cover({ height, top }: { height: number; top: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 overflow-hidden" style={{ top, height }} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={BUSINESS.cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <img src="/img/cover/gradient.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
+      {/* the doodles at phone scale, repeated across a wide screen rather than blown up */}
+      <div className="absolute inset-0 bg-[url(/img/cover/pattern-lines.png)] bg-cover bg-top opacity-40 sm:bg-[length:480px_auto] sm:bg-repeat-x" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,#fff,rgba(255,255,255,0))]" />
     </div>
   );
