@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/*
+  Benable's National 2 Narrow (name pill and headlines). It's a licensed font, so the files stay out of the
+  public repo: drop the four .otf files into public/fonts locally. Without them, Arial Narrow stands in.
+*/
+@font-face { font-family: "National 2 Narrow"; src: url("/fonts/National2Narrow-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "National 2 Narrow"; src: url("/fonts/National2Narrow-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "National 2 Narrow"; src: url("/fonts/National2Narrow-Bold.otf") format("opentype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "National 2 Narrow"; src: url("/fonts/National2Narrow-Extrabold.otf") format("opentype"); font-weight: 800; font-display: swap; }
+
+/* ---------- Collab Concierge design tokens (from the main Collab Concierge app) ---------- */
+:root {
+  --ink: #161a35;
+  --ink-2: #4a4e69;
+  --muted: #8a8da3;
+  --line: #e7e8ef;
+  --lilac: #f3f0ff;
+  --violet: #6b4ef0;
+  --mint: #22b07d;
+  --brand-grad: linear-gradient(130deg, #4daeff 0%, #749bff 25%, #cba0f6 50%, #e9a8b1 70%, #fbb647 100%);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-lilac: var(--lilac);
+  --color-violet: var(--violet);
+  --color-mint: var(--mint);
+  --font-display: "National 2 Narrow", "Arial Narrow", Arial, sans-serif;
+  --font-sans: var(--font-inter), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Tailwind v4 resets buttons to the arrow cursor; anything clickable gets the hand back */
+@layer base {
+  a[href], button, [role="button"], label, select {
+    cursor: pointer;
+  }
+  :disabled, [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+body {
+  background: #f4f3f8;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.brand-grad { background-image: var(--brand-grad); }
+
+/* the form lives in a phone-width column, so its titles stay one size */
+.flow-title { font-family: var(--font-sans); font-weight: 800; letter-spacing: -0.035em; line-height: 1.06; color: #1c1c1c; text-wrap: balance; font-size: 28px; }
+
+/* browsers paint autofilled fields pale blue; hold off so our grey fields stay grey */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+  transition: background-color 9999s ease-out;
+}
