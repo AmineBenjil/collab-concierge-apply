@@ -60,6 +60,11 @@ type Draft = {
 const EMPTY: Draft = { handle: "", create: "", want: "", paid: "", range: "", based: "", first: "", last: "", email: "", phone: "", extra: "" };
 const cleanHandle = (raw: string) => raw.trim().replace(/^@+/, "").replace(/\s+/g, "").toLowerCase();
 
+/* there's no Instagram lookup behind this yet, so "finding" the account is a short pause and the card is built from the handle */
+type Lookup = "idle" | "searching" | "found" | "confirmed";
+const LOOKUP_MS = 900;
+const handleName = (h: string) => h.split(/[._\d]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(" ") || h;
+
 const DRAFT_KEY = `cc:apply:${business}`;
 function loadDraft(): Draft {
   if (typeof window === "undefined") return EMPTY;
@@ -137,6 +142,15 @@ export default function CreatorFlow() {
   };
 
   const [files, setFiles] = useState<Attachment[]>([]);
+  const handle = cleanHandle(d.handle);
+  const [found, setFound] = useState(""); // the handle the (pretend) lookup finished for
+  const [mine, setMine] = useState(""); // the handle they said "that's me" to
+  useEffect(() => {
+    if (!handle) return;
+    const t = setTimeout(() => setFound(handle), LOOKUP_MS);
+    return () => clearTimeout(t);
+  }, [handle]);
+  const lookup: Lookup = !handle ? "idle" : mine === handle ? "confirmed" : found === handle ? "found" : "searching";
   const [fileError, setFileError] = useState("");
   const addFiles = async (list: File[]) => {
     setFileError("");
@@ -179,7 +193,7 @@ export default function CreatorFlow() {
 
   const valid: Record<Step, boolean> = {
     opener: true,
-    socials: cleanHandle(d.handle).length > 0,
+    socials: lookup === "confirmed",
     collab: !!d.create.trim() && !!d.want.trim(),
     payment: d.paid === "no" || (d.paid === "yes" && !!d.range),
     audience: shots.every(Boolean),
@@ -242,7 +256,7 @@ export default function CreatorFlow() {
                   exit="exit"
                   transition={{ duration: 0.32, ease: EASE }}
                 >
-                  {step === "socials" && <Socials d={d} set={set} />}
+                  {step === "socials" && <Socials d={d} set={set} lookup={lookup} onConfirm={() => setMine(handle)} />}
                   {step === "collab" && <Collab d={d} set={set} />}
                   {step === "payment" && <Payment d={d} set={set} />}
                   {step === "audience" && <Audience shots={shots} onAdd={addShot} error={shotError} />}
@@ -346,8 +360,10 @@ function Done() {
   );
 }
 
-function Socials({ d, set }: Bind) {
+function Socials({ d, set, lookup, onConfirm }: Bind & { lookup: Lookup; onConfirm: () => void }) {
   const id = useId();
+  const open = lookup === "found" || lookup === "confirmed";
+  const handle = cleanHandle(d.handle);
   return (
     <>
       <Title sub="Add your primary Instagram.">Your socials</Title>
@@ -369,7 +385,61 @@ function Socials({ d, set }: Bind) {
       <div className={`${field} mt-3 flex items-center gap-1 focus-within:bg-white focus-within:shadow-[inset_0_0_0_2px_#5035e3]`}>
         <span className="text-muted">@</span>
         <input id={id} autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false} value={d.handle} onChange={(e) => set("handle", e.target.value)} placeholder="Your handle" className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted" />
+        {lookup === "searching" && <span className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-violet/15 border-t-violet motion-reduce:animate-none" aria-hidden="true" />}
+        {open && (
+          <motion.span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mint/15 text-[#178a60]" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.35, ease: EASE }}>
+            <RiCheckLine size={16} aria-label="Account found" />
+          </motion.span>
+        )}
       </div>
+
+      {/* "is this you?": the account we found, and one tap to say yes before Next unlocks */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="dialog"
+            aria-label="Confirm your account"
+            className="mt-3 flex items-center gap-3 rounded-[22px] border border-line bg-white p-3 shadow-[0_24px_50px_-22px_rgba(40,30,110,0.45)]"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.4, ease: EASE }}
+          >
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-lilac text-[18px] font-semibold text-violet" aria-hidden="true">
+              {handle[0]?.toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1 leading-tight">
+              <div className="truncate text-[16px] font-semibold text-ink">{handleName(handle)}</div>
+              <div className="mt-0.5 truncate text-[13.5px] text-muted">@{handle}</div>
+            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              {lookup === "confirmed" ? (
+                <motion.span
+                  key="yes"
+                  role="status"
+                  className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-mint px-4 text-[14px] font-semibold text-white"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                >
+                  <RiCheckLine size={16} aria-hidden="true" /> That&apos;s me
+                </motion.span>
+              ) : (
+                <motion.button
+                  key="ask"
+                  type="button"
+                  onClick={onConfirm}
+                  className="h-10 shrink-0 rounded-full bg-[#111] px-4 text-[14px] font-semibold text-white transition-colors hover:bg-black"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  Yes, that&apos;s me
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
