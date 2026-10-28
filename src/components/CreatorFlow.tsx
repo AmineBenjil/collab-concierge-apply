@@ -1,6 +1,16 @@
 "use client";
 
-import { RiArrowDownSLine, RiArrowLeftSLine, RiCheckLine, RiErrorWarningLine, RiImageAddLine, RiMapPin2Line } from "@remixicon/react";
+import {
+  RiArrowDownSLine,
+  RiArrowLeftSLine,
+  RiCheckLine,
+  RiCloseLine,
+  RiErrorWarningLine,
+  RiFilePdf2Line,
+  RiImageAddLine,
+  RiMapPin2Line,
+  RiUpload2Line,
+} from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { BUSINESS } from "@/business";
@@ -74,6 +84,20 @@ async function shrink(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.82);
 }
 
+/* the last step's optional files: images are shrunk like the Insights shots, PDFs go as they are,
+   and the caps keep the whole request under the host's 4.5 MB body limit */
+type Attachment = { name: string; size: number; pdf: boolean; url: string };
+const FILES_MAX = 3;
+const PDF_MAX = 2 * 1024 * 1024;
+const FILES_BUDGET = 3_000_000; // characters of data URL across all files
+const readAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+
 export default function CreatorFlow() {
   const reduce = useReducedMotion();
   const [step, setStep] = useState<Step>("opener");
@@ -112,6 +136,40 @@ export default function CreatorFlow() {
     }
   };
 
+  const [files, setFiles] = useState<Attachment[]>([]);
+  const [fileError, setFileError] = useState("");
+  const addFiles = async (list: File[]) => {
+    setFileError("");
+    let next = files;
+    for (const file of list) {
+      if (next.length >= FILES_MAX) break;
+      const pdf = file.type === "application/pdf";
+      if (pdf && file.size > PDF_MAX) {
+        setFileError(`${file.name} is over 2 MB. Try a smaller PDF.`);
+        continue;
+      }
+      if (!pdf && !file.type.startsWith("image/")) {
+        setFileError(`${file.name} isn't a PDF or an image.`);
+        continue;
+      }
+      try {
+        const url = pdf ? await readAsDataUrl(file) : await shrink(file);
+        if (next.reduce((n, f) => n + f.url.length, url.length) > FILES_BUDGET) {
+          setFileError("That's a lot to send at once. Try fewer or smaller files.");
+          continue;
+        }
+        next = [...next, { name: file.name, size: pdf ? file.size : Math.round((url.length * 3) / 4), pdf, url }];
+      } catch {
+        setFileError(`We couldn't open ${file.name}. Try a PDF, PNG or JPG.`);
+      }
+    }
+    setFiles(next);
+  };
+  const dropFile = (i: number) => {
+    setFileError("");
+    setFiles((prev) => prev.filter((_, j) => j !== i));
+  };
+
   const go = (to: Step, direction: 1 | -1 = 1) => {
     setDir(direction);
     setStep(to);
@@ -138,7 +196,7 @@ export default function CreatorFlow() {
       const res = await fetch("/api/apply", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...d, handle: cleanHandle(d.handle), range: d.paid === "yes" ? d.range : "", screenshots: shots }),
+        body: JSON.stringify({ ...d, handle: cleanHandle(d.handle), range: d.paid === "yes" ? d.range : "", screenshots: shots, files: files.map(({ name, url }) => ({ name, url })) }),
       });
       if (!res.ok) throw new Error(String(res.status));
       try {
@@ -190,7 +248,7 @@ export default function CreatorFlow() {
                   {step === "audience" && <Audience shots={shots} onAdd={addShot} error={shotError} />}
                   {step === "based" && <Based d={d} set={set} />}
                   {step === "contact" && <Contact d={d} set={set} />}
-                  {step === "extra" && <Extra d={d} set={set} />}
+                  {step === "extra" && <Extra d={d} set={set} files={files} onAdd={addFiles} onRemove={dropFile} fileError={fileError} />}
                 </motion.div>
               </AnimatePresence>
             </form>
@@ -460,13 +518,70 @@ function Contact({ d, set }: Bind) {
   );
 }
 
-function Extra({ d, set }: Bind) {
+function Extra({ d, set, files, onAdd, onRemove, fileError }: Bind & { files: Attachment[]; onAdd: (f: File[]) => void; onRemove: (i: number) => void; fileError: string }) {
   return (
     <>
       <Title sub="Timing preferences, restrictions, limitations, anything else.">Anything else you&apos;d like to add?</Title>
       <Area label="" value={d.extra} onChange={(v) => set("extra", v)} placeholder="Optional" autoFocus className="mt-7" />
+      <Files files={files} onAdd={onAdd} onRemove={onRemove} error={fileError} />
       <p className="mt-3 px-1 text-[13.5px] text-muted">Optional, but the more you share, the better.</p>
     </>
+  );
+}
+
+const fileSize = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
+
+/* a dashed tap-to-upload box for a media kit or screenshots of past work, each file listed back with a way to take it out */
+function Files({ files, onAdd, onRemove, error }: { files: Attachment[]; onAdd: (f: File[]) => void; onRemove: (i: number) => void; error: string }) {
+  return (
+    <div className="mt-8">
+      <div className="text-[16px] font-semibold text-ink">Show them your work</div>
+      <p className="mt-1 text-[14px] leading-snug text-muted">A media kit, a rate card, or screenshots of past collabs. PDF or image, up to {FILES_MAX}.</p>
+      {files.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {files.map((f, i) => (
+            <li key={`${f.name}-${f.url.length}-${i}`} className="flex items-center gap-3 rounded-[14px] bg-[#f2f2f7] p-2 pr-1.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-lilac text-violet">
+                {f.pdf ? (
+                  <RiFilePdf2Line size={20} aria-hidden="true" />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={f.url} alt="" className="h-full w-full object-cover" />
+                )}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-semibold text-ink">{f.name}</div>
+                <div className="text-[13px] text-muted">{fileSize(f.size)}</div>
+              </div>
+              <button type="button" onClick={() => onRemove(i)} aria-label={`Remove ${f.name}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-2 transition-colors hover:bg-[#e6e6ee] hover:text-ink">
+                <RiCloseLine size={18} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {files.length < FILES_MAX && (
+        <label className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[20px] border-[1.5px] border-dashed border-[#76767a] bg-[#fcfcfc] px-4 py-7 text-ink transition-colors hover:bg-[#f6f6f9] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#5035e3]">
+          <RiUpload2Line size={26} aria-hidden="true" />
+          <span className="text-[17px] font-medium">Tap to upload files</span>
+          <input
+            type="file"
+            multiple
+            accept="image/*,application/pdf"
+            className="sr-only"
+            onChange={(e) => {
+              onAdd(Array.from(e.target.files ?? []));
+              e.target.value = "";
+            }}
+          />
+        </label>
+      )}
+      {error && (
+        <p role="alert" className="mt-3 px-1 text-[13.5px] text-[#c23a56]">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
