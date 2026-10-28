@@ -44,7 +44,7 @@
 }
 
 body {
-  background: #f4f3f8;
+  background: #fff;
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -62,8 +62,9 @@ h1 {
 
 .brand-grad { background-image: var(--brand-grad); }
 
-/* the form lives in a phone-width column, so its titles stay one size */
+/* question titles: phone size, a step up on a laptop */
 .flow-title { font-family: var(--font-sans); font-weight: 800; letter-spacing: -0.035em; line-height: 1.06; color: #1c1c1c; text-wrap: balance; font-size: 28px; }
+@media (min-width: 640px) { .flow-title { font-size: 36px; } }
 
 /* browsers paint autofilled fields pale blue; hold off so our grey fields stay grey */
 input:-webkit-autofill,

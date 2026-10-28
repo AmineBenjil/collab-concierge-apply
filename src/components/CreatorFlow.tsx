@@ -9,7 +9,8 @@ import Logo from "./Logo";
 /*
   The link a creator gets when they DM the business: one question per screen, a sticky button
   within thumb reach, and the draft saved as they go. Phone first (most creators open it inside
-  Instagram); on a laptop the same column sits centred as a card.
+  Instagram). On a laptop the page goes edge to edge: a full-width header and photo, with the questions
+  and their button in one centred column.
   The screens are the Collab Concierge creator flow, with nothing filled in for them.
 */
 
@@ -159,15 +160,8 @@ export default function CreatorFlow() {
   };
 
   return (
-    <div className="relative min-h-svh">
-      {/* desktop: the business's own colours, blurred far back, so the card feels like theirs */}
-      <div className="pointer-events-none fixed inset-0 hidden overflow-hidden sm:block" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={BUSINESS.avatar} alt="" className="h-full w-full scale-125 object-cover opacity-35 blur-[90px]" />
-        <div className="absolute inset-0 bg-[#f4f3f8]/60" />
-      </div>
-
-      <main className="relative mx-auto flex min-h-svh w-full max-w-[440px] flex-col bg-white sm:my-10 sm:min-h-[min(820px,calc(100svh-80px))] sm:rounded-[32px] sm:border sm:border-white/70 sm:shadow-[0_40px_90px_-40px_rgba(40,30,110,0.45)]">
+    <div className="relative min-h-svh bg-white">
+      <main className="relative flex min-h-svh w-full flex-col">
         {step === "opener" ? (
           <Opener onStart={() => go("socials")} />
         ) : step === "done" ? (
@@ -175,7 +169,7 @@ export default function CreatorFlow() {
         ) : (
           <>
             <TopBar step={PLACE[step]!} onBack={() => go(BACK[step]!, -1)} saved={saved} />
-            <form id="flow" onSubmit={submit} noValidate className="flex-1 px-6 pb-6 pt-7">
+            <form id="flow" onSubmit={submit} noValidate className={`${COLUMN} flex-1 px-6 pb-6 pt-7 sm:flex-none sm:pb-10 sm:pt-12`}>
               <AnimatePresence mode="wait" custom={dir} initial={false}>
                 <motion.div
                   key={step}
@@ -239,18 +233,18 @@ function Opener({ onStart }: { onStart: () => void }) {
       <Cover height={415} top={0.5} />
       <PoweredBy />
 
-      <Enter i={1} className="relative mt-[229.75px] flex flex-col items-center gap-6 px-[21.38px]">
+      <Enter i={1} className={`${COLUMN} relative mt-[229.75px] flex flex-col items-center gap-6 px-[21.38px] sm:mt-[250px]`}>
         <Business />
         <Headline>Request a collab</Headline>
       </Enter>
 
       {BUSINESS.welcome.trim() && (
-        <Enter i={2} className="relative mt-[60.75px]">
+        <Enter i={2} className={`${COLUMN} relative mt-[60.75px] sm:mt-12`}>
           <Bubble>{BUSINESS.welcome}</Bubble>
         </Enter>
       )}
 
-      <div className="sticky bottom-0 z-20 mt-auto px-5 pb-[max(30.5px,env(safe-area-inset-bottom))] pt-6">
+      <div className={`${COLUMN} ${DOCK} pb-[max(30.5px,env(safe-area-inset-bottom))]`}>
         <button type="button" onClick={onStart} className={CTA}>
           Let&apos;s go
         </button>
@@ -268,7 +262,7 @@ function Done() {
       <PoweredBy />
       <Confetti />
 
-      <Enter i={1} className="relative mt-[69.75px] flex flex-col items-center gap-6 px-[21.38px]">
+      <Enter i={1} className={`${COLUMN} relative mt-[69.75px] flex flex-col items-center gap-6 px-[21.38px] sm:mt-[150px]`}>
         <Business />
         <div className="flex w-full flex-col items-center gap-2 text-center">
           <Headline>Amazing!</Headline>
@@ -277,12 +271,12 @@ function Done() {
       </Enter>
 
       {BUSINESS.thanks.trim() && (
-        <Enter i={2} className="relative mt-[37.5px]">
+        <Enter i={2} className={`${COLUMN} relative mt-[37.5px] sm:mt-10`}>
           <Bubble>{BUSINESS.thanks}</Bubble>
         </Enter>
       )}
 
-      <div className="sticky bottom-0 z-20 mt-auto px-5 pb-[max(21px,env(safe-area-inset-bottom))] pt-6">
+      <div className={`${COLUMN} ${DOCK} pb-[max(21px,env(safe-area-inset-bottom))]`}>
         <a href={`https://www.instagram.com/${encodeURIComponent(business)}`} target="_blank" rel="noopener" className={CTA}>
           Follow @{business} on Instagram
         </a>
@@ -481,7 +475,7 @@ function Extra({ d, set }: Bind) {
 /* the business's photo, fading to white at the bottom */
 function Cover({ height, top }: { height: number; top: number }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 overflow-hidden sm:rounded-t-[32px]" style={{ top, height }} aria-hidden="true">
+    <div className="pointer-events-none absolute inset-x-0 overflow-hidden" style={{ top, height }} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={BUSINESS.cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,#fff,rgba(255,255,255,0))]" />
@@ -492,7 +486,7 @@ function Cover({ height, top }: { height: number; top: number }) {
 /* the dark strip at the top: "Powered by" and the Benable logo */
 function PoweredBy() {
   return (
-    <div className="sticky top-0 z-10 flex h-[67px] items-start justify-center bg-[linear-gradient(to_top,rgba(0,0,0,0)_4.753%,rgba(0,0,0,0.3)_74.958%)] px-5 pb-5 pt-3 text-white sm:rounded-t-[32px]">
+    <div className="sticky top-0 z-10 flex h-[67px] items-start justify-center bg-[linear-gradient(to_top,rgba(0,0,0,0)_4.753%,rgba(0,0,0,0.3)_74.958%)] px-5 pb-5 pt-3 text-white sm:h-[76px] sm:pt-5">
       <div className="flex items-center gap-2">
         <span className="text-[16px] leading-[normal]">Powered by</span>
         <Logo height={25.115} />
@@ -594,6 +588,11 @@ type Bind = { d: Draft; set: <K extends keyof Draft>(k: K, v: Draft[K]) => void 
 // iOS-style filled fields: soft grey at rest, white with a violet ring while typing; 17px so Safari never zooms
 const field = "h-[52px] w-full rounded-[14px] bg-[#f2f2f7] px-4 text-[17px] text-ink outline-none transition-[background-color,box-shadow] duration-200 focus:bg-white focus:shadow-[inset_0_0_0_2px_#5035e3]";
 
+/* the one column everything sits in: the phone's width on a phone, a little wider and centred on a laptop */
+const COLUMN = "mx-auto w-full max-w-[440px] sm:max-w-[560px]";
+/* where the opener's and thank-you's button lives: pinned within thumb reach on a phone, right under the content on a laptop */
+const DOCK = "sticky bottom-0 z-20 mt-auto px-5 pt-6 sm:static sm:mt-12 sm:px-6 sm:pb-16";
+
 /* every full-width call to action, sized and coloured like the opener's "Let's go" */
 const CTA = "relative flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-[#7a5cfa] px-4 text-center text-[16px] font-medium leading-[normal] text-white transition-[background-color,transform] duration-200 hover:bg-[#6c4ef0] active:scale-[0.985] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[#b9a8ff]";
 
@@ -690,8 +689,8 @@ function TopBar({ step, onBack, saved }: { step: [number, number, number]; onBac
   const [group, at, of] = step;
   // a native-feeling nav bar: back on the left, where they are in the middle, the business on the right
   return (
-    <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl sm:rounded-t-[32px]">
-      <div className="relative flex h-[52px] items-center px-1.5">
+    <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl sm:border-b sm:border-line">
+      <div className="relative mx-auto flex h-[52px] w-full max-w-[960px] items-center px-1.5 sm:h-16 sm:px-6">
         <button type="button" onClick={onBack} aria-label="Back" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink transition-colors active:bg-[#f2f2f7]">
           <RiArrowLeftSLine size={30} aria-hidden="true" />
         </button>
@@ -715,7 +714,7 @@ function TopBar({ step, onBack, saved }: { step: [number, number, number]; onBac
           </span>
         </div>
       </div>
-      <div className="flex gap-1 px-4 pb-2.5" aria-hidden="true">
+      <div className="mx-auto flex w-full max-w-[960px] gap-1 px-4 pb-2.5 sm:px-8 sm:pb-4" aria-hidden="true">
         {GROUPS.map((g, i) => (
           <span key={g} className="h-[4px] flex-1 overflow-hidden rounded-full bg-[#ececf2]">
             <motion.span className="block h-full rounded-full bg-[#5035e3]" initial={false} animate={{ width: i < group ? "100%" : i === group ? `${(at / of) * 100}%` : "0%" }} transition={{ duration: 0.5, ease: EASE }} />
@@ -726,8 +725,9 @@ function TopBar({ step, onBack, saved }: { step: [number, number, number]; onBac
   );
 }
 
+/* the steps' button: right under the questions, and held at the bottom of the window when they run long */
 function Footer({ children }: { children: ReactNode }) {
-  return <div className="sticky bottom-0 z-20 mt-auto bg-gradient-to-t from-white from-70% to-white/0 px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-6 sm:rounded-b-[32px]">{children}</div>;
+  return <div className={`${COLUMN} sticky bottom-0 z-20 mt-auto bg-gradient-to-t from-white from-70% to-white/0 px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-6 sm:mt-0 sm:px-6 sm:pb-10 sm:pt-4`}>{children}</div>;
 }
 
 function Primary({ children, busy = false, className = "", ...rest }: { children: ReactNode; busy?: boolean } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
