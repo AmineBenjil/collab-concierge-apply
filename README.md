@@ -3,6 +3,10 @@
 The page creators open from a business's DM to request a collab. Phone first; on a laptop it sits as a centred card.
 It's the Collab Concierge creator flow with nothing pre-filled: socials, the collab, payment, three Instagram Insights screenshots, location, contact, anything else, then a thank-you screen whose button follows the business on Instagram.
 
+## Deploy
+
+The Vercel project is linked to this repo: every push to `main` deploys to https://collab-concierge-apply.vercel.app.
+
 ## Run
 
 ```bash
@@ -21,4 +25,4 @@ In local dev without it, requests are saved to `.submissions/`. A deployment wit
 
 ## Fonts
 
-The headline font, National 2 Narrow, is licensed, so its files aren't in this repo. Put `National2Narrow-{Regular,Medium,Bold,Extrabold}.otf` in `public/fonts/` to use it; without them the page falls back to Arial Narrow.
+The headline font, National 2 Narrow, is licensed, so its files aren't in this repo. `/fonts/*` is proxied to benable.com (see `next.config.ts`); local copies in `public/fonts/` take priority if you have them.

@@ -2,7 +2,7 @@
 
 /*
   Benable's National 2 Narrow (name pill and headlines). It's a licensed font, so the files stay out of the
-  public repo: drop the four .otf files into public/fonts locally. Without them, Arial Narrow stands in.
+  public repo; /fonts is proxied to benable.com (next.config.ts), and Arial Narrow stands in if that fails.
 */
 @font-face { font-family: "National 2 Narrow"; src: url("/fonts/National2Narrow-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "National 2 Narrow"; src: url("/fonts/National2Narrow-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
