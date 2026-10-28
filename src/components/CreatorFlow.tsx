@@ -594,7 +594,6 @@ function Extra({ d, set, files, onAdd, onRemove, fileError }: Bind & { files: At
       <Title sub="Timing preferences, restrictions, limitations, anything else.">Anything else you&apos;d like to add?</Title>
       <Area label="" value={d.extra} onChange={(v) => set("extra", v)} placeholder="Optional" autoFocus className="mt-7" />
       <Files files={files} onAdd={onAdd} onRemove={onRemove} error={fileError} />
-      <p className="mt-3 px-1 text-[13.5px] text-muted">Optional, but the more you share, the better.</p>
     </>
   );
 }
@@ -604,9 +603,11 @@ const fileSize = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b /
 /* a dashed tap-to-upload box for a media kit or screenshots of past work, each file listed back with a way to take it out */
 function Files({ files, onAdd, onRemove, error }: { files: Attachment[]; onAdd: (f: File[]) => void; onRemove: (i: number) => void; error: string }) {
   return (
-    <div className="mt-8">
-      <div className="text-[16px] font-semibold text-ink">Show them your work</div>
-      <p className="mt-1 text-[14px] leading-snug text-muted">A media kit, a rate card, or screenshots of past collabs. PDF or image, up to {FILES_MAX}.</p>
+    <div className="mt-5">
+      <div className="flex items-baseline gap-2">
+        <span className="text-[16px] font-semibold text-ink">Upload files</span>
+        <span className="text-[14px] text-muted">Optional</span>
+      </div>
       {files.length > 0 && (
         <ul className="mt-3 space-y-2">
           {files.map((f, i) => (
@@ -631,9 +632,9 @@ function Files({ files, onAdd, onRemove, error }: { files: Attachment[]; onAdd: 
         </ul>
       )}
       {files.length < FILES_MAX && (
-        <label className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[20px] border-[1.5px] border-dashed border-[#76767a] bg-[#fcfcfc] px-4 py-7 text-ink transition-colors hover:bg-[#f6f6f9] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#5035e3]">
-          <RiUpload2Line size={26} aria-hidden="true" />
-          <span className="text-[17px] font-medium">Tap to upload files</span>
+        <label className="mt-2.5 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[12px] border border-dashed border-[#717171] bg-[#fcfcfc] px-3 py-3.5 text-[#1c1c1c] transition-colors hover:bg-[#f6f6f9] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#5035e3]">
+          <RiUpload2Line size={16} aria-hidden="true" />
+          <span className="text-[13px] font-medium">Tap to upload files</span>
           <input
             type="file"
             multiple
