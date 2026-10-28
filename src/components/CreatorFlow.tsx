@@ -479,8 +479,8 @@ function Cover({ height, top }: { height: number; top: number }) {
     <div className="pointer-events-none absolute inset-x-0 overflow-hidden" style={{ top, height }} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/img/cover/gradient.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
-      {/* the doodles at phone scale, repeated across a wide screen rather than blown up */}
-      <div className="absolute inset-0 bg-[url(/img/cover/pattern-lines.png)] bg-cover bg-top opacity-40 sm:bg-[length:480px_auto] sm:bg-repeat-x" />
+      {/* the doodles: the phone's portrait pattern, and a wide version (Higgsfield outpaint of it) for laptops */}
+      <div className="absolute inset-0 bg-[url(/img/cover/pattern-lines.png)] bg-cover bg-top opacity-40 sm:bg-[url(/img/cover/pattern-lines-wide.jpg)]" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,#fff,rgba(255,255,255,0))]" />
     </div>
   );
