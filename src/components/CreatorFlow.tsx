@@ -12,7 +12,7 @@ import {
   RiUpload2Line,
 } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { BUSINESS } from "@/business";
 import Logo from "./Logo";
 
@@ -150,6 +150,12 @@ export default function CreatorFlow() {
     const t = setTimeout(() => setFound(handle), LOOKUP_MS);
     return () => clearTimeout(t);
   }, [handle]);
+  // a beat to see "That's me" land, then on to the next question (as in the demo)
+  const onward = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const confirm = () => {
+    setMine(handle);
+    onward.current = setTimeout(() => go("collab"), 700);
+  };
   const lookup: Lookup = !handle ? "idle" : mine === handle ? "confirmed" : found === handle ? "found" : "searching";
   const [fileError, setFileError] = useState("");
   const addFiles = async (list: File[]) => {
@@ -185,6 +191,7 @@ export default function CreatorFlow() {
   };
 
   const go = (to: Step, direction: 1 | -1 = 1) => {
+    clearTimeout(onward.current); // Back during the beat after "That's me" wins
     setDir(direction);
     setStep(to);
     setSendError(false);
@@ -256,7 +263,7 @@ export default function CreatorFlow() {
                   exit="exit"
                   transition={{ duration: 0.32, ease: EASE }}
                 >
-                  {step === "socials" && <Socials d={d} set={set} lookup={lookup} onConfirm={() => setMine(handle)} />}
+                  {step === "socials" && <Socials d={d} set={set} lookup={lookup} onConfirm={confirm} />}
                   {step === "collab" && <Collab d={d} set={set} />}
                   {step === "payment" && <Payment d={d} set={set} />}
                   {step === "audience" && <Audience shots={shots} onAdd={addShot} error={shotError} />}
